@@ -1,18 +1,16 @@
 
-document.addEventListener("DOMContentLoaded", ()=>{
+document.addEventListener("DOMContentLoaded", () => {
     let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
 
-    const renderizarProductos = ()=>{
-        
-        //url= "https://dummyjson.com/products?limit=10";
-        url= "https://dummyjson.com/products/category/smartphones";
+    const renderizarProductos = () => {
+        const url = "https://dummyjson.com/products/category/smartphones";
 
         fetch(url)
             .then(res => res.json())
             .then(data => {
                 let contenedorProductos = document.getElementById("contenedor-productos");
 
-                for(const producto of data.products){
+                for (const producto of data.products) {
                     let tarjetaProducto = document.createElement("article");
                     tarjetaProducto.classList.add("tarjeta-producto");
 
@@ -27,43 +25,47 @@ document.addEventListener("DOMContentLoaded", ()=>{
                     let precioProducto = document.createElement("p");
                     precioProducto.textContent = `$${producto.price}`;
 
-                    //let descripcionProducto = document.createElement("p");
-                    //descripcionProducto.textContent = producto.description;
+                    let btnAgregar = document.createElement("button");
+                    btnAgregar.textContent = "Agregar";
 
-                    let btnAgregar = document.createElement("button")
-                    btnAgregar.textContent = "Agregar"
-
-                    btnAgregar.addEventListener("click", ()=>{
+                    btnAgregar.addEventListener("click", () => {
                         alert(`${producto.title} agregado al carrito`);
                         agregarProducto(producto);
                         actualizarAgregados();
-                    })
+                    });
 
                     tarjetaProducto.appendChild(imagenProducto);
                     tarjetaProducto.appendChild(tituloProducto);
                     tarjetaProducto.appendChild(precioProducto);
-                    //tarjetaProducto.appendChild(descripcionProducto);
                     tarjetaProducto.appendChild(btnAgregar);
 
-                    contenedorProductos.appendChild(tarjetaProducto)
-                    
+                    contenedorProductos.appendChild(tarjetaProducto);
                 }
-
-            }) 
-            .catch(err => console.error("Error: ", err));    
-    
+            })
+            .catch(err => console.error("Error al cargar productos:", err));
     };
 
-	const agregarProducto = (producto)=>{
-		carrito.push(producto);
-		localStorage.setItem("carrito",JSON.stringify(carrito));
-	}
+    const agregarProducto = (producto) => {
+        const productoExistente = carrito.find(p => p.id === producto.id);
 
-	const actualizarAgregados= ()=>{
-		const contadorCarrito = document.getElementById("contador-carrito");
-		contadorCarrito.textContent = carrito.length;
-	}
-    
-	renderizarProductos();
-	actualizarAgregados();
+        if (productoExistente) {
+            productoExistente.cantidad += 1;
+        } else {
+            carrito.push({
+                ...producto,
+                cantidad: 1
+            });
+        }
+
+        localStorage.setItem("carrito", JSON.stringify(carrito));
+    };
+
+    const actualizarAgregados = () => {
+        const contadorCarrito = document.getElementById("contador-carrito");
+        const total = carrito.reduce((acc, p) => acc + p.cantidad, 0);
+        contadorCarrito.textContent = total;
+    };
+
+    renderizarProductos();
+    actualizarAgregados();
 });
